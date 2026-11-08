@@ -1,0 +1,8 @@
+$kind: http-request
+name: Delete task
+method: DELETE
+url: '{{baseUrl}}/tasks/1'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: 'pm.test("returns 404", () => pm.response.to.have.status(404));'
