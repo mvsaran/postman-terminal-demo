@@ -1,0 +1,35 @@
+name: Postman
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  postman:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Postman CLI
+        run: npm install -g @postman/postman-cli
+
+      - name: Push mock to Postman workspace
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          postman mock push "postman/mocks/tasks-mock" --workspace "a3d85a4b-79a6-44fd-8044-9db3dfe398d3"
+
+      - name: Deploy mock as public live mock
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          postman mock list --workspace "a3d85a4b-79a6-44fd-8044-9db3dfe398d3" --json > mock-list.json
+          MOCK_ID=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('mock-list.json','utf8')); const mock=data.mocks?.find(m => m.name === 'Tasks Mock') || data.find?.(m => m.name === 'Tasks Mock'); if (!mock) { console.error('Tasks Mock not found'); process.exit(1); } console.log(mock.id);")
+          postman mock deploy "$MOCK_ID" --slug tasks-mock-mvsar --public -n "Tasks Mock" --yes
