@@ -2,12 +2,17 @@ openapi: 3.0.3
 info:
   title: Tasks API
   version: 1.0.0
+  description: >
+    A simple REST API for managing tasks. Supports listing all tasks,
+    creating new tasks, and retrieving a single task by its unique identifier.
 servers:
   - url: http://localhost:4010
 paths:
   /tasks:
     get:
+      operationId: listTasks
       summary: List tasks
+      description: Returns an array of all tasks currently stored in the system.
       responses:
         "200":
           description: OK
@@ -17,8 +22,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Task"
+        "400":
+          description: Bad request — the query parameters are invalid or malformed.
     post:
+      operationId: createTask
       summary: Create a task
+      description: Creates a new task with the provided title and returns the saved task object.
       requestBody:
         required: true
         content:
@@ -32,9 +41,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "400":
+          description: Bad request — the request body is missing or contains invalid fields.
   /tasks/{taskId}:
     get:
+      operationId: getTask
       summary: Get a task
+      description: Retrieves a single task by its unique identifier.
       parameters:
         - name: taskId
           in: path
@@ -48,6 +61,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found — no task exists with the given taskId.
 components:
   schemas:
     NewTask:
