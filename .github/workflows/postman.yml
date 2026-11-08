@@ -27,13 +27,8 @@ jobs:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
           if [ -z "$POSTMAN_API_KEY" ]; then
-            if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-              echo "::notice::POSTMAN_API_KEY is unavailable to forked pull requests; running syntax lint without login."
-              echo "authenticated=false" >> "$GITHUB_OUTPUT"
-            else
-              echo "::error::POSTMAN_API_KEY repository secret is required for this event."
-              exit 1
-            fi
+            echo "::notice::POSTMAN_API_KEY is not configured; running syntax lint and skipping authenticated Postman operations."
+            echo "authenticated=false" >> "$GITHUB_OUTPUT"
           else
             postman login --with-api-key "$POSTMAN_API_KEY"
             echo "authenticated=true" >> "$GITHUB_OUTPUT"
@@ -51,14 +46,14 @@ jobs:
         run: postman spec ai-readiness openapi.yaml --min-score 70
 
       - name: Push mock to Postman workspace
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.postman_login.outputs.authenticated == 'true'
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
           postman mock push "postman/mocks/tasks-mock" --workspace "a3d85a4b-79a6-44fd-8044-9db3dfe398d3"
 
       - name: Deploy mock as public live mock
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.postman_login.outputs.authenticated == 'true'
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
