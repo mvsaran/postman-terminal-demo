@@ -27,7 +27,7 @@ paths:
     post:
       operationId: createTask
       summary: Create a task
-      description: Creates a new task with the provided title and returns the saved task object.
+      description: Creates a new task with the provided name and returns the saved task object.
       requestBody:
         required: true
         content:
@@ -86,9 +86,9 @@ components:
   schemas:
     NewTask:
       type: object
-      required: [title]
+      required: [name]
       properties:
-        title:
+        name:
           type: string
     Task:
       type: object
