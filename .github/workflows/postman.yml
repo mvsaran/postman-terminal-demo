@@ -3,6 +3,7 @@ name: Postman
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -18,15 +19,38 @@ jobs:
           node-version: 20
 
       - name: Install Postman CLI
-        run: npm install -g @postman/postman-cli
+        run: npm install -g postman-cli
+
+      - name: Log in to Postman
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          if [ -z "$POSTMAN_API_KEY" ]; then
+            if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+              echo "::notice::POSTMAN_API_KEY is unavailable to forked pull requests; running local checks without login."
+            else
+              echo "::error::POSTMAN_API_KEY repository secret is required for this event."
+              exit 1
+            fi
+          else
+            postman login --with-api-key "$POSTMAN_API_KEY"
+          fi
+
+      - name: Lint OpenAPI specification
+        run: postman spec lint openapi.yaml --fail-severity error --no-report-events
+
+      - name: Check AI readiness
+        run: postman spec ai-readiness openapi.yaml --min-score 70
 
       - name: Push mock to Postman workspace
+        if: github.event_name != 'pull_request'
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
           postman mock push "postman/mocks/tasks-mock" --workspace "a3d85a4b-79a6-44fd-8044-9db3dfe398d3"
 
       - name: Deploy mock as public live mock
+        if: github.event_name != 'pull_request'
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
