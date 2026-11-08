@@ -21,6 +21,12 @@ jobs:
       - name: Install Postman CLI
         run: npm install -g postman-cli
 
+      - name: Lint OpenAPI specification
+        run: postman spec lint openapi.yaml --fail-severity error --no-report-events
+
+      - name: Check AI readiness
+        run: postman spec ai-readiness openapi.yaml --min-score 70
+
       - name: Log in to Postman
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
@@ -35,12 +41,6 @@ jobs:
           else
             postman login --with-api-key "$POSTMAN_API_KEY"
           fi
-
-      - name: Lint OpenAPI specification
-        run: postman spec lint openapi.yaml --fail-severity error --no-report-events
-
-      - name: Check AI readiness
-        run: postman spec ai-readiness openapi.yaml --min-score 70
 
       - name: Push mock to Postman workspace
         if: github.event_name != 'pull_request'
