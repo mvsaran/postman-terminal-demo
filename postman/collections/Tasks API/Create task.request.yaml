@@ -1,0 +1,11 @@
+$kind: http-request
+name: Create task
+method: POST
+url: '{{baseUrl}}/tasks'
+body:
+  type: json
+  content: '{"title":"Write the module"}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: 'pm.test("returns 201", () => pm.response.to.have.status(201));'

@@ -1,0 +1,8 @@
+$kind: http-request
+name: Get task
+method: GET
+url: '{{baseUrl}}/tasks/1'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: 'pm.test("returns 200", () => pm.response.to.have.status(200));'
