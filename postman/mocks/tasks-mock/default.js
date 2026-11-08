@@ -41,11 +41,18 @@ const server = http.createServer((req, res) => {
   // @endpoint GET /tasks/:taskId
   if (req.method === 'GET' && /^\/tasks\/([^/]+)$/.test(pathname)) {
     const requestedStatusCode = req.headers['x-mock-response-code'];
+    const taskId = pathname.split('/').pop();
 
     // "Not found — no task exists with the given taskId." — when x-mock-response-code: 404
     if (requestedStatusCode === '404') {
-      res.writeHead(404, {"Content-Type":"text/plain"});
-      return res.end("");
+      res.writeHead(404, {"Content-Type":"application/json"});
+      return res.end(JSON.stringify({ error: 'task not found' }));
+    }
+
+    // Specific missing-task case required by the contract
+    if (taskId === 'missing') {
+      res.writeHead(404, {"Content-Type":"application/json"});
+      return res.end(JSON.stringify({ error: 'task not found' }));
     }
 
     // "OK" — default
